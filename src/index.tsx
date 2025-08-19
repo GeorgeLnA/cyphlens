@@ -6,6 +6,7 @@ import LoadingScreen from "./components/ui/loading-screen";
 const Boot = (): JSX.Element => {
   const [showLoader, setShowLoader] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [startLoading, setStartLoading] = useState(false);
 
   useEffect(() => {
     // Preload all critical resources
@@ -53,12 +54,25 @@ const Boot = (): JSX.Element => {
       }
     };
 
-    preloadResources();
-  }, []);
+    // Only start preloading when startLoading is true (300ms before animation ends)
+    if (startLoading) {
+      preloadResources();
+    }
+  }, [startLoading]);
+
+  const handleLoadingComplete = () => {
+    // This is called 300ms before the animation ends
+    setStartLoading(true);
+    
+    // Hide the loader after the full animation duration
+    setTimeout(() => {
+      setShowLoader(false);
+    }, 300);
+  };
 
   return (
     <>
-      {showLoader && <LoadingScreen loop={false} onComplete={() => setShowLoader(false)} />}
+      {showLoader && <LoadingScreen loop={false} onComplete={handleLoadingComplete} />}
       {/* Keep content fully rendered under the loader so Spline runs before curtain ends */}
       <div className="opacity-100">
         <ElementLight />

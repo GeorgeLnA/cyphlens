@@ -16,6 +16,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ loop = false, onComplete 
   useEffect(() => {
     let loopTimer: number | null = null;
     let completeTimer: number | null = null;
+    let curtainTimer: number | null = null;
 
     const startCurtainExit = () => {
       const durationMs = 900; // smooth, quick handoff
@@ -52,7 +53,13 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ loop = false, onComplete 
         loopTimer = window.setTimeout(runAnimation, totalDuration);
       } else {
         // After sequence, perform curtain-up exit once
+        // Trigger onComplete 300ms before the animation ends to start website loading early
         completeTimer = window.setTimeout(() => {
+          onComplete?.();
+        }, totalDuration - 300);
+        
+        // Start the curtain exit animation after the early trigger
+        curtainTimer = window.setTimeout(() => {
           startCurtainExit();
         }, totalDuration);
       }
@@ -63,6 +70,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ loop = false, onComplete 
     return () => {
       if (loopTimer) window.clearTimeout(loopTimer);
       if (completeTimer) window.clearTimeout(completeTimer);
+      if (curtainTimer) window.clearTimeout(curtainTimer);
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
     };
   }, [loop, onComplete]);
